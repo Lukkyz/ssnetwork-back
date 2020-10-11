@@ -1,4 +1,5 @@
 "use strict";
+const i18n = require("i18n");
 const bcrypt = require("bcryptjs");
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
@@ -14,10 +15,37 @@ module.exports = (sequelize, DataTypes) => {
   }
   User.init(
     {
-      username: { type: DataTypes.STRING, allowNull: false },
-      email: { type: DataTypes.STRING, allowNull: false },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          is: {
+            args: [/^[A-zÀ-ú0-9]{6,24}$/],
+            msg: "Username is invalid",
+          },
+        },
+      },
+      email: {
+        validate: {
+          is: {
+            args: [/^\w{3,}@\w{3,}\.\w{2,3}$/],
+            msg: "Email is invalid",
+          },
+        },
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       bio: { type: DataTypes.STRING, allowNull: true },
-      password: { type: DataTypes.STRING, allowNull: false },
+      password: {
+        validate: {
+          is: {
+            args: [/^(?!.* )(?=.*\d)(?=.*[A-Z]).{8,24}$/],
+            msg: "Password is invalid",
+          },
+        },
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
     {
       sequelize,
