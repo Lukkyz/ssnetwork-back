@@ -60,3 +60,40 @@ exports.login = async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 };
+
+exports.refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshtoken;
+    if (!token) return res.send({ token: "" });
+    const payload = jwt.verify(token, process.env.JWT_REFRESH);
+    const user = await User.findOne({
+      where: {
+        id: payload.userId,
+      },
+    });
+    if (user) {
+      const newAccessTkn = jwt.sign(
+        { userId: user.id },
+        process.env.JWT_ACCESS,
+        { expiresIn: "15m" }
+      );
+      res.status(200).json({
+        userId: user.id,
+        username: user.username,
+        token: newAccessTkn,
+      });
+      console.log("OK");
+    }
+  } catch (e) {
+    res.status(500).json(e);
+  }
+};
+
+exports.logOut = (req, res) => {
+  try {
+    res.clearCookie("refreshtoken", { path: "users/refresh_token" });
+    res.status(200);
+  } catch {
+    res.status(500);
+  }
+};
