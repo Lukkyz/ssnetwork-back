@@ -64,7 +64,7 @@ exports.login = async (req, res) => {
 exports.refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshtoken;
-    if (!token) return res.send({ token: "" });
+    if (!token) throw new Error("No token");
     const payload = jwt.verify(token, process.env.JWT_REFRESH);
     const user = await User.findOne({
       where: {
@@ -82,7 +82,6 @@ exports.refreshToken = async (req, res) => {
         username: user.username,
         token: newAccessTkn,
       });
-      console.log("OK");
     }
   } catch (e) {
     res.status(500).json(e);
