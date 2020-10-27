@@ -20,6 +20,19 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.getAll = async (req, res) => {
+  try {
+    const posts = await Post.sequelize.transaction(async (t) => {
+      let posts = await Post.findAll({ include: ["user"] });
+      return posts;
+    });
+    console.log(posts);
+    res.status(200).json(posts);
+  } catch (e) {
+    res.status(500).json(e);
+  }
+};
+
 exports.delete = async (req, res) => {
   try {
     const result = await Post.sequelize.transaction(async (t) => {
