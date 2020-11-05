@@ -13,9 +13,15 @@ module.exports = {
       },
       postId: {
         type: Sequelize.INTEGER,
+        references: {
+          model: "Posts",
+        },
       },
       userId: {
         type: Sequelize.INTEGER,
+        references: {
+          model: "Users",
+        },
       },
       createdAt: {
         allowNull: false,
@@ -31,4 +37,3 @@ module.exports = {
     await queryInterface.dropTable("PostUserLikes");
   },
 };
-

@@ -7,5 +7,6 @@ router.post("/", userCtrl.create);
 router.post("/login", userCtrl.login);
 router.post("/refresh_token", userCtrl.refreshToken);
 router.post("/logout", userCtrl.logOut);
+router.post("/follow/:userId", userCtrl.manageFollow);
 
 module.exports = router;
