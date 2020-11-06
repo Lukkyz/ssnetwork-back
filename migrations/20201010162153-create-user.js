@@ -20,6 +20,9 @@ module.exports = {
       password: {
         type: Sequelize.STRING,
       },
+      avatarUrl: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -34,4 +37,3 @@ module.exports = {
     await queryInterface.dropTable("Users");
   },
 };
-

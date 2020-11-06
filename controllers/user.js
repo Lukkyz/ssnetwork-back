@@ -1,4 +1,5 @@
 const User = require("../models").User;
+const Post = require("../models").Post;
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Follow = require("../models").Follow;
@@ -16,10 +17,33 @@ exports.create = (req, res) => {
     .catch((err) => res.status(500).json(err));
 };
 
+// Return user with followers and followeds
+exports.getFollow = async (req, res) => {
+  try {
+    const result = await User.sequelize.transaction(async (t) => {
+      const user = await User.findOne({
+        where: { email: req.body.email },
+        include: [
+          { model: Follow, as: "followers", foreignKey: "followedId" },
+          { model: Follow, as: "followeds", foreignKey: "followerId" },
+        ],
+      });
+      return user;
+    });
+    res.status(200).json(result);
+  } catch (e) {
+    res.status(500).json(e);
+  }
+};
+
 exports.login = async (req, res) => {
   try {
     const user = await User.findOne({
       where: { email: req.body.email },
+      include: [
+        { model: Follow, as: "followers", foreignKey: "followedId" },
+        { model: Follow, as: "followeds", foreignKey: "followerId" },
+      ],
     });
     if (!user || !req.body.password) {
       res.status(401).json({ error: "Something went wrong" });
@@ -55,6 +79,7 @@ exports.login = async (req, res) => {
           userId: user.id,
           username: user.username,
           token: accessTkn,
+          avatarUrl: user.avatarUrl,
         });
       }
     }
@@ -63,6 +88,7 @@ exports.login = async (req, res) => {
   }
 };
 
+// Check refreshToken in cookie, if is valid send a new accessToken
 exports.refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshtoken;
@@ -83,8 +109,30 @@ exports.refreshToken = async (req, res) => {
         userId: user.id,
         username: user.username,
         token: newAccessTkn,
+        avatarUrl: user.avatarUrl,
       });
     }
+  } catch (e) {
+    res.status(500).json(e);
+  }
+};
+
+exports.changeAvatar = async (req, res) => {
+  try {
+    let userId = await userHlpr.getUserToken(req);
+    const user = await User.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    const file = `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`;
+    if (user) {
+      user.update({ avatarUrl: file });
+    }
+
+    res.status(200).json(file);
   } catch (e) {
     res.status(500).json(e);
   }
@@ -99,6 +147,7 @@ exports.logOut = (req, res) => {
   }
 };
 
+// /follow/:id_user if action in body = 1 : Follow, else Unfollow
 exports.manageFollow = async (req, res, next) => {
   try {
     const result = await User.sequelize.transaction(async (t) => {

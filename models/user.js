@@ -10,8 +10,17 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.hasMany(models.Post, { as: "posts" });
-      this.hasMany(models.Follow, { as: "follows", onDelete: "cascade" });
+      this.hasMany(models.Post, { as: "posts", foreignKey: "userId" });
+      this.hasMany(models.Follow, {
+        as: "followeds",
+        onDelete: "cascade",
+        foreignKey: "followerId",
+      });
+      this.hasMany(models.Follow, {
+        as: "followers",
+        onDelete: "cascade",
+        foreignKey: "followedId",
+      });
     }
   }
   User.init(
@@ -46,6 +55,10 @@ module.exports = (sequelize, DataTypes) => {
         },
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      avatarUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
     },
     {

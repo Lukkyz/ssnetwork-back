@@ -25,24 +25,26 @@ exports.create = async (req, res) => {
 
 exports.getAll = async (req, res) => {
   try {
-    const posts = await Post.sequelize.transaction(async (t) => {
-      let userId = userHlpr.getUserToken(req);
-      let followed = await Follow.findAll({
-        where: {
-          followerId: userId,
+    const result = await Post.sequelize.transaction(async (t) => {
+      let userId = await userHlpr.getUserToken(req);
+      let followed = await Follow.findAll(
+        {
+          where: {
+            followerId: userId,
+          },
+          attributes: ["followedId"],
         },
-        attributes: ["followedId"],
-      });
+        { transaction: t }
+      );
       let arrUserId = followed.map((id) => id.dataValues.followedId);
-      console.log(arrUserId);
       let posts = await Post.findAll({
         where: { userId: { [Op.in]: [...arrUserId, userId] } },
         include: ["user"],
       });
+      console.log(posts);
       return posts;
     });
-    console.log(posts);
-    res.status(200).json(posts);
+    res.status(200).json(result);
   } catch (e) {
     res.status(500).json(e);
   }
